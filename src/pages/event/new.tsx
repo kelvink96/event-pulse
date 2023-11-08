@@ -23,12 +23,7 @@ import {createEvent} from "@/lib/events.ts";
 import {useLocation} from "wouter";
 import {useState} from "react";
 import {uploadFile} from "@/lib/storage.ts";
-
-interface EventPulseImage {
-  height: number
-  file: File
-  width: number
-}
+import {EventPulseImage} from "@/types/events.ts";
 
 const formSchema = z.object({
   eventName: z.string().min(2, {
