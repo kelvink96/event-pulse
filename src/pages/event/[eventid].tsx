@@ -1,22 +1,28 @@
 import Container from "@/components/Container"
-
-import events from '@/data/events.json';
 import Layout from "@/layout";
+import {useEffect, useState} from "react";
+import {getEventById} from "@/lib/events.ts";
+import {EventPulseEvent} from "@/types/events.ts";
+import {CalendarIcon} from "lucide-react";
 
-function EventId() {
-  const event = events[0];
-  const image = {
-    url: events[0].imageUrl,
-    alt: ''
-  };
+function EventId({params}: { params: { eventId: string } }) {
+  const [event, setEvent] = useState<EventPulseEvent | undefined>()
+
+  useEffect(() => {
+    (async function run() {
+      const {event} = await getEventById(params.eventId)
+      setEvent(event)
+    })()
+  }, [params.eventId]);
 
   return (
     <Layout>
       <Container className="grid gap-12 grid-cols-1 md:grid-cols-2">
         <div>
-          {image.url && (
+          {/*{image.url && (
             <img src={image.url} alt={image.alt} width={800} height={450} className="block rounded"/>
-          )}
+          )}*/}
+          <CalendarIcon/>
         </div>
 
         <div className="flex flex-col gap-2.5 items-start">
