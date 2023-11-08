@@ -4,9 +4,19 @@ import {useEffect, useState} from "react";
 import {getEventById} from "@/lib/events.ts";
 import {EventPulseEvent} from "@/types/events.ts";
 import {CalendarIcon} from "lucide-react";
+import {getFilePreviewImageById} from "@/lib/storage.ts";
 
 function EventId({params}: { params: { eventId: string } }) {
   const [event, setEvent] = useState<EventPulseEvent | undefined>()
+
+  const imageUrl = event?.imageFileId && getFilePreviewImageById(event.imageFileId)
+
+  const image = {
+    url: imageUrl,
+    alt: event?.name,
+    height: event?.imageHeight,
+    width: event?.imageWidth
+  }
 
   useEffect(() => {
     (async function run() {
@@ -19,10 +29,10 @@ function EventId({params}: { params: { eventId: string } }) {
     <Layout>
       <Container className="grid gap-12 grid-cols-1 md:grid-cols-2">
         <div>
-          {/*{image.url && (
-            <img src={image.url} alt={image.alt} width={800} height={450} className="block rounded"/>
-          )}*/}
-          <CalendarIcon/>
+          {image.url ?
+            <img src={image?.url} alt={image.alt} height={image.height} width={image.width} className="rounded-lg"/> :
+            <CalendarIcon/>
+          }
         </div>
 
         <div className="flex flex-col gap-2.5 items-start">

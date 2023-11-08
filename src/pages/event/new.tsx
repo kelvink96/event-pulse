@@ -19,36 +19,77 @@ import {cn} from "@/lib/utils.ts";
 import {format} from "date-fns";
 import {CalendarIcon} from "lucide-react";
 import {Calendar} from "@/components/ui/calendar.tsx";
+import {createEvent} from "@/lib/events.ts";
+import {useLocation} from "wouter";
+import {useState} from "react";
+import {uploadFile} from "@/lib/storage.ts";
+
+interface EventPulseImage {
+  height: number
+  file: File
+  width: number
+}
 
 const formSchema = z.object({
   eventName: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
   eventDate: z.date({
-    required_error: "A date of birth is required.",
+    required_error: "An event date is required.",
   }),
   eventLocation: z.string().min(2, {
     message: "Location must be at least 2 characters.",
   }),
-  eventFile: z.string().min(2, {
-    message: "File must be at least 2 characters.",
-  }),
+  eventFile: z.any().nullish()
 })
 
 function EventNew() {
+  const [, navigate] = useLocation()
+  const [image, setImage] = useState<EventPulseImage>()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      eventName: "",
-      eventLocation: "",
-      eventFile: "",
-    },
   })
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values)
+
+    let file;
+    if (image?.file) {
+      file = await uploadFile(image.file);
+    }
+
+    console.log('file', file)
+
+    const results = await createEvent({
+      name: values.eventName,
+      location: values.eventLocation,
+      date: new Date(values.eventDate).toISOString(),
+      imageFileId: file?.$id,
+      imageHeight: image?.height,
+      imageWidth: image?.width,
+    });
+
+    navigate(`/event/${results.event.$id}`)
+  }
+
+  const handleOnChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const target = event.target as HTMLInputElement & {
+      files: FileList
+    }
+
+    const img = new Image();
+
+    img.onload = function () {
+      setImage({
+        height: img.height,
+        file: target.files[0],
+        width: img.width
+      })
+    }
+
+    img.src = URL.createObjectURL(target.files[0])
   }
 
   return (
@@ -62,13 +103,11 @@ function EventNew() {
             Creating an event on EventPulse is a surefire way to elevate your event's success to
             unprecedented heights.
             From concerts to festivals, EventPulse caters to all event types, making it the ideal stage to
-            capture the
-            attention of your target audience.
+            capture the attention of your target audience.
           </p>
           <p>
             Focus on what matters most—delivering an unforgettable experience—and witness your event gain
-            momentum like
-            never before on EventPulse.
+            momentum like never before on EventPulse.
           </p>
         </div>
         <div>
@@ -90,7 +129,7 @@ function EventNew() {
               <FormField
                 control={form.control}
                 name="eventDate"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Date of birth</FormLabel>
                     <Popover>
@@ -108,7 +147,7 @@ function EventNew() {
                             ) : (
                               <span>Pick a date</span>
                             )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50"/>
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -118,13 +157,13 @@ function EventNew() {
                           selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date: Date) =>
-                            date > new Date() || date < new Date("1900-01-01")
+                            date < new Date() || date < new Date("1900-01-01")
                           }
                           initialFocus
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}
               />
@@ -143,12 +182,17 @@ function EventNew() {
               />
               <FormField
                 control={form.control}
-                name="eventName"
-                render={({field}) => (
+                name="eventFile"
+                render={() => (
                   <FormItem>
                     <FormLabel>Event files</FormLabel>
                     <FormControl>
-                      <Input placeholder="event name" type="file" {...field} />
+                      <Input
+                        placeholder="event name"
+                        type="file"
+                        accept="image/png, image/jpeg"
+                        onChange={handleOnChange}
+                      />
                     </FormControl>
                     <FormDescription>
                       Accepted File Types: jpg, png
