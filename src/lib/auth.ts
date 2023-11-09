@@ -5,7 +5,12 @@ export async function logIn(email: string) {
   return await account.createMagicURLSession(ID.unique(), email, `${window.location.origin}/session`)
 }
 
-export async function verifySession(userId: string, secret: string) {
+export interface VerifySessionOptions {
+  userId: string
+  secret: string
+}
+
+export async function verifySession({userId, secret}: VerifySessionOptions) {
   return await account.updateMagicURLSession(userId, secret)
 }
 

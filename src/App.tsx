@@ -1,12 +1,13 @@
 import './App.css'
 import {Route} from "wouter";
-import Home from "@/pages/Home.tsx";
-import Login from "@/pages/Login.tsx";
-import Session from "@/pages/Session.tsx";
+import Home from "@/pages/home.tsx";
+import Login from "@/pages/login.tsx";
+import Session from "@/pages/session.tsx";
 import EventId from "@/pages/event/[eventid].tsx";
 import EventNew from "@/pages/event/new.tsx";
+import {AuthProvider} from "@/hooks/use-auth.tsx";
 
-function App() {
+const Router = () => {
   return (
     <>
       <Route path="" component={Home}/>
@@ -15,6 +16,14 @@ function App() {
       <Route path="/events/new" component={EventNew}/>
       <Route path="/event/:eventId" component={EventId}/>
     </>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router/>
+    </AuthProvider>
   )
 }
 

@@ -1,10 +1,11 @@
 import Container from "@/components/Container";
 import {useEffect} from "react";
-import {verifySession} from "@/lib/auth.ts";
 import {useLocation} from "wouter";
+import {useAuth} from "@/hooks/use-auth.tsx";
 
 function Session() {
   const [, navigate] = useLocation()
+  const {verifySession} = useAuth()
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -17,7 +18,7 @@ function Session() {
     }
 
     (async function run() {
-      await verifySession(userId, secret)
+      await verifySession({userId, secret})
       navigate('/')
     })()
   }, []);

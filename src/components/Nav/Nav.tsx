@@ -3,25 +3,14 @@ import Container from '@/components/Container';
 import Logo from "@/components/Logo";
 import {Button} from "@/components/ui/button.tsx";
 import {LogInIcon, LogOutIcon} from "lucide-react";
-import {useEffect, useState} from "react";
-import {deleteCurrentSession, getCurrentSession} from "@/lib/auth.ts";
-import {Models} from "appwrite";
+import {useAuth} from "@/hooks/use-auth.tsx";
 
 const Nav = () => {
-  const [session, setSession] = useState<Models.Session>()
+  const {session, logOut} = useAuth()
 
   const handleOnLogOut = async () => {
-    await deleteCurrentSession()
-    setSession(undefined)
+    await logOut()
   }
-
-  useEffect(() => {
-    (async function run() {
-      const data = await getCurrentSession()
-
-      setSession(data.session)
-    })()
-  }, []);
 
   return (
     <nav>

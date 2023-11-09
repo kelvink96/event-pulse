@@ -6,11 +6,12 @@ import {useForm} from "react-hook-form"
 import * as z from "zod"
 import {Button} from "@/components/ui/button.tsx";
 import {Input} from "@/components/ui/input.tsx";
-import {logIn} from "@/lib/auth.ts";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {useState} from "react";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {CheckCircleIcon} from "lucide-react";
+import {useAuth} from "@/hooks/use-auth.tsx";
+import {Redirect} from "wouter";
 
 const formSchema = z.object({
   email: z.coerce.string().email().min(5, {
@@ -19,6 +20,7 @@ const formSchema = z.object({
 })
 
 function Login() {
+  const {logIn, session} = useAuth()
   const [sent, setSent] = useState(false)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,6 +34,10 @@ function Login() {
     await logIn(values.email)
 
     setSent(true)
+  }
+
+  if (session) {
+    return <Redirect to="/"/>
   }
 
   return (
