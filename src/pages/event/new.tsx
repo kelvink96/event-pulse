@@ -24,6 +24,8 @@ import {useLocation} from "wouter";
 import {useState} from "react";
 import {uploadFile} from "@/lib/storage.ts";
 import {EventPulseImage} from "@/types/events.ts";
+import {AppwriteException} from "appwrite";
+import ErrorAlert from "@/components/ErrorAlert";
 
 const formSchema = z.object({
   eventName: z.string().min(2, {
@@ -41,6 +43,7 @@ const formSchema = z.object({
 function EventNew() {
   const [, navigate] = useLocation()
   const [image, setImage] = useState<EventPulseImage>()
+  const [error, setError] = useState<string>()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   })
@@ -48,25 +51,32 @@ function EventNew() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values)
+    try {
+      let file;
+      if (image?.file) {
+        file = await uploadFile(image.file);
+      }
 
-    let file;
-    if (image?.file) {
-      file = await uploadFile(image.file);
+      const results = await createEvent({
+        name: values.eventName,
+        location: values.eventLocation,
+        date: new Date(values.eventDate).toISOString(),
+        imageFileId: file?.$id,
+        imageHeight: image?.height,
+        imageWidth: image?.width,
+      });
+
+      navigate(`/event/${results.event.$id}`)
+    } catch (error: unknown) {
+      if(error instanceof AppwriteException){
+        if (error.type === "user_unauthorized"){
+          setError("You must be logged in to submit an event")
+        }
+        if (error.type === "general_unknown"){
+          setError("An unknown error occurred while submitting your event")
+        }
+      }
     }
-
-    console.log('file', file)
-
-    const results = await createEvent({
-      name: values.eventName,
-      location: values.eventLocation,
-      date: new Date(values.eventDate).toISOString(),
-      imageFileId: file?.$id,
-      imageHeight: image?.height,
-      imageWidth: image?.width,
-    });
-
-    navigate(`/event/${results.event.$id}`)
   }
 
   const handleOnChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -199,6 +209,7 @@ function EventNew() {
               <Button type="submit">Submit</Button>
             </form>
           </Form>
+          {error && <ErrorAlert message={error}/>}
         </div>
       </Container>
     </Layout>

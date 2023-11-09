@@ -2,6 +2,7 @@ import Container from "@/components/Container";
 import {useEffect} from "react";
 import {useLocation} from "wouter";
 import {useAuth} from "@/hooks/use-auth.tsx";
+import {AppwriteException} from "appwrite";
 
 function Session() {
   const [, navigate] = useLocation()
@@ -18,8 +19,14 @@ function Session() {
     }
 
     (async function run() {
-      await verifySession({userId, secret})
-      navigate('/')
+      try {
+        await verifySession({userId, secret})
+        navigate('/')
+      } catch (error: unknown) {
+        if(error instanceof AppwriteException){
+          navigate(`/login?error=${error.type}`)
+        }
+      }
     })()
   }, []);
 

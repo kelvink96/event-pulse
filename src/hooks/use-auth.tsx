@@ -1,9 +1,11 @@
 import {createContext, ReactNode, useContext, useEffect, useState} from "react";
 import {Models} from "appwrite";
 import {deleteCurrentSession, getCurrentSession, logIn, verifySession, VerifySessionOptions} from "@/lib/auth.ts";
+import {getTeams} from "@/lib/user.ts";
 
 interface EventPulseAuthContext {
   session?: Models.Session
+  isAdmin: boolean
   logOut: () => void,
   logIn: (email: string) => void,
   verifySession: (options: VerifySessionOptions) => void,
@@ -28,6 +30,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuthState() {
   const [session, setSession] = useState<Models.Session>()
+  const [isAdmin, setIsAdmin] = useState(false)
 
   async function logOut() {
     await deleteCurrentSession()
@@ -35,7 +38,7 @@ export function useAuthState() {
   }
 
   async function verifySessionAndSave(options: VerifySessionOptions) {
-    const data  = await verifySession(options)
+    const data = await verifySession(options)
     setSession(data)
   }
 
@@ -47,15 +50,28 @@ export function useAuthState() {
     })()
   }, []);
 
+  useEffect(() => {
+    if (!session?.$id) return;
+
+    (async function run() {
+      const {teams} = await getTeams()
+      const isAdmin = !!teams.find(team => team.$id === import.meta.env.VITE_APPWRITE_TEAM_ADMIN_ID)
+
+      setIsAdmin(isAdmin)
+    })()
+  }, [session?.$id]);
+
   return {
     session,
     logOut,
     logIn,
-    verifySession: verifySessionAndSave
+    verifySession: verifySessionAndSave,
+    isAdmin
   }
 }
 
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const auth = useContext(AuthContext);
 

@@ -7,11 +7,13 @@ import * as z from "zod"
 import {Button} from "@/components/ui/button.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {CheckCircleIcon} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth.tsx";
 import {Redirect} from "wouter";
+import {AppwriteException} from "appwrite";
+import ErrorAlert from "@/components/ErrorAlert";
 
 const formSchema = z.object({
   email: z.coerce.string().email().min(5, {
@@ -22,6 +24,7 @@ const formSchema = z.object({
 function Login() {
   const {logIn, session} = useAuth()
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState<string>()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   })
@@ -40,6 +43,18 @@ function Login() {
     return <Redirect to="/"/>
   }
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const error = params.get('error')
+
+    if (error === "user_unauthorized") {
+      setError("Your login session, please try again.")
+    }
+    if (error === "general_unknown") {
+      setError("An unknown error occurred while submitting your event")
+    }
+  }, []);
+
   return (
     <Layout>
       <Container className="flex flex-col gap-2 items-center">
@@ -51,6 +66,7 @@ function Login() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {error && <ErrorAlert message={error}/>}
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
