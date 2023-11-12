@@ -15,7 +15,7 @@ export interface EventPulseImage {
 }
 
 export interface EventPulseImagePreview {
-    url?: URL | string
+    url?: string
     alt: string
     height?: number
     width?: number

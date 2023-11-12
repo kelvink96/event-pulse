@@ -41,7 +41,7 @@ function Home() {
           <Container>
             <div className="grid gap-12 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {events.map((event) => {
-                const imageUrl = event?.imageFileId && getFilePreviewImageById(event.imageFileId)
+                const imageUrl = event?.imageFileId && getFilePreviewImageById(event.imageFileId).toString()
 
                 const image = {
                   url: imageUrl,

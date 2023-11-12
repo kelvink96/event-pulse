@@ -12,7 +12,6 @@ import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {CheckCircleIcon} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth.tsx";
 import {Redirect} from "wouter";
-import {AppwriteException} from "appwrite";
 import ErrorAlert from "@/components/ErrorAlert";
 
 const formSchema = z.object({
